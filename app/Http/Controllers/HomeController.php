@@ -24,11 +24,11 @@ class HomeController extends Controller
         ];
 
         $createInvoce = \Xendit\Invoice::create($params);
-        // dd($createInvoce['external_id']);
+        dd($createInvoce);
 
-        $inv = Transaction::create([
-            'external_id' => $createInvoce['external_id'],
-        ]);
+        // $inv = Transaction::create([
+        //     'external_id' => $createInvoce['external_id'],
+        // ]);
     }
 
     public function xenditCallback()
@@ -38,6 +38,20 @@ class HomeController extends Controller
             Log::info('===CALLBACK XENDIT INVOICE===');
             Log::info($data);
             $data = json_decode($data);
+
+            // check status transaksi
+            // jika expired
+            // update status jadi expired
+            $xenditCallback = Transaction::where('id', $data->external_id)->first();
+            $xenditCallback->status = 'EXPIRED';
+            $xenditCallback->save();
+
+
+            // jika paid
+            // cari external_id
+            $xenditCallback = Transaction::where('id', $data->external_id)->first();
+            $xenditCallback->status = 'PAID';
+            $xenditCallback->save();
 
             return response()->json("callback success", 200);
         } else {
